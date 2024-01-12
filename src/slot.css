@@ -1,0 +1,52 @@
+.slots-pane {
+    -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.day {
+    /* margin-bottom: 20px; */
+    display:flex; flex-direction:row;justify-content: center;align-items: center; 
+    justify-content: flex-start;
+}
+.day .date {margin-left:8px; margin-right:8px ;font-size:0.8em; white-space: nowrap; width:70px}
+
+.day .slots {display:flex; flex-direction:row;border:1px solid gray; border-left: none; border-bottom:none}
+
+.slot {
+    width:20px;
+    /* border:1px solid gray; */
+    border-left:none;
+    border-right:none;
+    cursor:pointer
+}
+
+.slot .item {border-left:1px solid gray; font-size: 0.5em; text-align: center; padding: 8px 0; color:#ccc}
+.slot .item:hover {color:black}
+
+
+
+.slot.free-ride .item {color:gray}
+.slot.booked .item {color:gray}
+.slot.tech .item {color:white}
+
+.slot.free {background-color: rgb(252, 247, 241);}
+.slot.free.even {background-color: rgb(235, 230, 224);}
+
+.slot.free-ride {background-color: greenyellow;}
+.slot.booked {background-color: rgb(252, 188, 70); ;}
+.slot.tech {background-color: gray;}
+
+.slot .timelabel {font-size:0.4em; border-bottom:1px solid gray; background-color: white; white-space: nowrap; overflow: visible;}
+.slot .timelabel.start {border-left:1px solid gray}
+
+
+.legend {border:1px solid gray; padding:2px 8px; font-size:0.8em; border-radius: 4px; cursor: pointer;}
+.legend.selected {border:1px solid black; box-shadow: 2px 2px 3px gray;}
+.legend.free {background-color: rgb(252, 247, 241);}
+.legend.free-ride {background-color: greenyellow;}
+.legend.booked {background-color: rgb(252, 188, 70); }
+.legend.tech {background-color: gray; color:white}
+
+.slot.start .item {border-left:2px solid black}
