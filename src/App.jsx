@@ -61,7 +61,7 @@ function App() {
 
       return <div class={cls} onClick={() => {
 
-        if (!selectedState()) { return }
+        if (!selectedState()) { return alert('Сперва выберите статус') }
 
         if (a.state == selectedState()) {
           a.state = 'FREE'
