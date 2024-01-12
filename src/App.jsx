@@ -6,7 +6,7 @@ import './slot.css'
 
 
 const hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-const monthes = ['янв', 'фев']
+const monthes = ['января', 'февраля', 'марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
 
 
 function formatTime(date) {
@@ -16,31 +16,6 @@ function formatTime(date) {
   minutes = (minutes < 10) ? "0" + minutes : minutes;
   return [hours, minutes]
 }
-
-const globalObject = [
-
-]
-for (let j = 0; j < 10; j++) {
-
-  let currentDate = new Date(new Date().getTime() + (60 * 60 * 24 * j) * 1000);
-  currentDate.setHours(9)
-  currentDate.setMinutes(0)
-  currentDate.setSeconds(0)
-  const slots = []
-
-  for (let i = 0; i < 48; i++) {
-    const time = new Date(currentDate.getTime() + (60 * 15 * i) * 1000)
-    slots.push(
-      { num: i, time: formatTime(time), state: 'FREE' }
-    )
-  }
-
-  globalObject.push({
-    date: currentDate.getDate() + ' ' + (monthes[currentDate.getMonth()]), slots
-  })
-
-}
-
 
 async function fetchData() {
   return fetch('https://api.x125.ru/rnd/slots/get').then(a => a.json())
@@ -103,9 +78,16 @@ function App() {
     })
   }
 
+  function dateFormat(date){
+    // monthes[currentDate.getMonth()]{
+      // date = new Date(date)
+      date = new Date(date)
+    return date.getDate() + ' ' + monthes[date.getMonth()]
+  }
+
   function renderLine(row) {
     return <div class="day">
-      <div class="date">{row.date}</div>
+      <div class="date">{dateFormat(row.date)}</div>
       <div class="slots">
         {renderSlots(row.date, row.slots)}
       </div>
