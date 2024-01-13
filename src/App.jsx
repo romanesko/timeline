@@ -3,12 +3,13 @@ import { createResource, createSignal } from 'solid-js'
 import './App.css'
 import './slot.css'
 import { AuthScreen } from './Auth'
-import {getCookie, setCookie, api} from './common'
+import {api} from './common'
 
 
 const hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 const monthes = ['янв', 'фев', 'мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек']
 const daysOfWeek = ['вс', 'пн','вт','ср','чт','пт','сб']
+
 
 
 function formatTime(date) {
@@ -20,10 +21,7 @@ function formatTime(date) {
 }
 
 function fetchData() {
-  return api.get('slots/get').then(a=>{
-    console.log(a);
-    return a
-  })
+  return api.get('slots/get')
 }
 
 function setState(date,slot){
@@ -44,10 +42,8 @@ function classByState(state) {
 function App() {
 
 
-  const token = getCookie('token')
-
-  if(!token)
-  return <AuthScreen/>
+  if (!api.isLoggedIn())
+    return <AuthScreen/>
 
 
 
@@ -112,7 +108,9 @@ function App() {
     return <div class={cls} onClick={() => handleSelectState(state)}>{title}</div>
   }
 
-
+  async function handleLogoutClick(){
+    await api.logout()
+  }
 
   return <>
   <Show when={data()} fallback={<div>Loading…</div>}>
@@ -125,13 +123,16 @@ function App() {
     <div class="day">
       <div class="date"></div>
       <div style=" display:flex; ">
-        {hours.map(a => <div style="border-top:1px solid gray; font-size:0.9em; border-left:2px solid black; width:78px;">{a}</div>)}
+        {Array.from(new Set(data()[0].slots.map(a=>a.hour))).map(a => <div style="border-top:1px solid gray; font-size:0.9em; border-left:2px solid black; width:78px;">{a}</div>)}
       </div>
     </div>
     <div class="slots-pane">
         {data().map(row => renderLine(row))}
     </div>
     </Show>
+    <div class="logout">
+      <div class="points">...</div><div class="menu"><button onClick={handleLogoutClick}>Logout</button></div>
+    </div>
   </>
 }
 

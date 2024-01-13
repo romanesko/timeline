@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js"
-import {api, setCookie} from './common'
+import {api} from './common'
 
 const styles = {
     input: "width:200px; font-size:18px; border:1px solid #ddd; border-radius:4px; padding:10px",
@@ -15,8 +15,7 @@ export function AuthScreen(){
 
     async function doLogin(){
         try{
-            const response = await api.post('login',{login:login(), password: pass()})        
-            setCookie('token', response.token,30)
+            const response = await api.login(login(), pass())        
             document.location.reload()
         } catch(e){
             setErr(e.message)

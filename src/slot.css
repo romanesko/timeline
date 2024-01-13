@@ -50,3 +50,9 @@
 .legend.tech {background-color: gray; color:white}
 
 .slot.start .item {border-left:2px solid black}
+
+.logout {position:absolute; left:2px; top:2px; font-size:0.7em; display: flex; flex-direction: column;  overflow: hidden;}
+.logout .points {padding:0px 6px}
+.logout .menu {display: none;}
+.logout:hover .points{display: none;}
+.logout:hover .menu{display: block;}
