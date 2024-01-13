@@ -2,6 +2,8 @@ import { createResource, createSignal } from 'solid-js'
 
 import './App.css'
 import './slot.css'
+import { AuthScreen } from './Auth'
+import {getCookie, setCookie, api} from './common'
 
 
 const hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
@@ -16,16 +18,12 @@ function formatTime(date) {
   return [hours, minutes]
 }
 
-async function fetchData() {
-  return fetch('https://api.x125.ru/rnd/slots/get').then(a => a.json())
+function fetchData() {
+  return api.get('slots/get')
 }
 
-async function setState(date,slot){
-  fetch('https://api.x125.ru/rnd/slots/state/set', {
-    method: 'POST',
-    body: JSON.stringify({date, num: slot.num, state:slot.state})
-  })
-
+function setState(date,slot){
+    api.post('slots/state/set',{date, num: slot.num, state:slot.state}).catch(e=>alert(e.message))
 }
 
 function classByState(state) {
@@ -101,6 +99,11 @@ function App() {
     }
     return <div class={cls} onClick={() => handleSelectState(state)}>{title}</div>
   }
+
+  const token = getCookie('token')
+
+  if(!token)
+  return <AuthScreen/>
 
 
   return <>
