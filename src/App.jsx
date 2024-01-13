@@ -7,7 +7,8 @@ import {getCookie, setCookie, api} from './common'
 
 
 const hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-const monthes = ['января', 'февраля', 'марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
+const monthes = ['янв', 'фев', 'мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек']
+const daysOfWeek = ['вс', 'пн','вт','ср','чт','пт','сб']
 
 
 function formatTime(date) {
@@ -85,10 +86,9 @@ function App() {
   }
 
   function dateFormat(date){
-    // monthes[currentDate.getMonth()]{
-      // date = new Date(date)
-      date = new Date(date)
-    return date.getDate() + ' ' + monthes[date.getMonth()]
+    date = new Date(date)
+    
+    return daysOfWeek[date.getDay()] + ' ' + date.getDate() + ' ' + monthes[date.getMonth()]
   }
 
   function renderLine(row) {
@@ -112,6 +112,7 @@ function App() {
 
 
   return <>
+  <Show when={data()} fallback={<div>Loading…</div>}>
     <div style="display:flex; margin-bottom:10px; justify-content:center; gap:4px;">
       {renderStateSelectButton('FREE', 'свободно')}
       {renderStateSelectButton('FREE_RIDE', 'свободное катание')}
@@ -125,10 +126,9 @@ function App() {
       </div>
     </div>
     <div class="slots-pane">
-      <Show when={data()} fallback={<div>Loading…</div>}>
         {data().map(row => renderLine(row))}
-      </Show>
     </div>
+    </Show>
   </>
 }
 
