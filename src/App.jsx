@@ -20,7 +20,10 @@ function formatTime(date) {
 }
 
 function fetchData() {
-  return api.get('slots/get')
+  return api.get('slots/get').then(a=>{
+    console.log(a);
+    return a
+  })
 }
 
 function setState(date,slot){
