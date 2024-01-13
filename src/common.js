@@ -62,9 +62,11 @@ function get(method, params) {
 function post(method, params) {
   return fetch('https://api.x125.ru/rnd/' + method, {
     method: 'POST',
-    body: JSON.stringify(params)
+    body: JSON.stringify(params),
+    headers: headers()
   }).then(async (response) => {
     const data = await response.json()
+
     if (response.status == 401){
       deleteCookie('token')
       document.location.reload()
