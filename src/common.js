@@ -30,7 +30,12 @@ function deleteCookie(name) {
 
 
 function headers(){
-  return {'Authorization': 'Token ' + getCookie('token')}
+  const token = getCookie('token');
+  console.log(token)
+  if(!token){
+    return {}
+  }
+  return {'Authorization': 'Token ' + token}
 }
 
 function get(method, params) {

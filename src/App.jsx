@@ -38,6 +38,15 @@ function classByState(state) {
 
 
 function App() {
+
+
+  const token = getCookie('token')
+
+  if(!token)
+  return <AuthScreen/>
+
+
+
   const [count, setCount] = createSignal(0)
 
   const [data, { mutate }] = createResource(fetchData)
@@ -100,10 +109,6 @@ function App() {
     return <div class={cls} onClick={() => handleSelectState(state)}>{title}</div>
   }
 
-  const token = getCookie('token')
-
-  if(!token)
-  return <AuthScreen/>
 
 
   return <>
