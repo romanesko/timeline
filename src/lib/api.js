@@ -117,6 +117,6 @@ class ApiService {
 }
 
 
-const api = new Api('https://api.x125.ru/timeline')
+const api = new Api(API_HOST)
 
 export const apiService = new ApiService(api);

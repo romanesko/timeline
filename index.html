@@ -1,13 +1,27 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        #small-screen-message {
+            width: 100%;
+            text-align: center;
+            display: none
+        }
+    </style>
+    <script src="/config.js" type="module"></script>
+    <link href="/vite.svg" rel="icon" type="image/svg+xml"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Timeline</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+</head>
+<body>
+<div id="small-screen-message">
+    <h1>Sorry</h1>
+    <p>This only works on a wide screen</p>
+    <p>¯\_(ツ)_/¯</p>
+</div>
+<div id="app"></div>
+
+<script src="/src/main.js" type="module"></script>
+</body>
 </html>

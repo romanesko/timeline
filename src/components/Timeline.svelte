@@ -8,10 +8,8 @@
         <div class="fixed top-0 left-0 right-0 z-10  flex items-center " style="width:120px">
             <div class="flex flex-row flex-grow justify-between items-center m-4">
                 <Button disabled={!hasUpdated} size="xs" on:click={handleSavClick}>Сохранить</Button>
-<!--                <Button  size="xs" on:click={handleTestClick}>TEST</Button>-->
             </div>
         </div>
-<!--            <canvas use:drwCanvas id="myCanvas" width="400" height="300" on:mousemove={handleCanvasMouseMove} style="border:1px solid #000"></canvas>-->
 
         <div class="flex flex-row items-center justify-center gap-2 mb-4 mt-0">
 
@@ -24,7 +22,7 @@
             <Button outline on:click={()=>handleWeekMove(+1)}>→</Button>
         </div>
 
-        <svg bind:this={svg} style="width:1400px; height:800px" viewBox="0 0 1400 800" fill="none" xmlns="http://www.w3.org/2000/svg" on:mouseup={handleAriaMouseUp} on:mousedown={handleAriaMouseDown} on:mousemove={handleAriaMouseMove}>
+        <svg role="gridcell" tabindex="0" bind:this={svg} style="width:1400px; height:500px" viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" on:mouseup={handleAriaMouseUp} on:mousedown={handleAriaMouseDown} on:mousemove={handleAriaMouseMove}>
             <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
                 <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" style="stroke:rgba(255,0,0,0.5); stroke-width:1"></path>
             </pattern>
@@ -83,33 +81,6 @@
     })
   }
 
-  function drwCanvas(canvas) {
-
-    console.log(canvas)
-    const ctx = canvas.getContext('2d');
-    if (window.devicePixelRatio > 1) {
-      var canvasWidth = canvas.width;
-      var canvasHeight = canvas.height;
-
-      canvas.width = canvasWidth * window.devicePixelRatio;
-      canvas.height = canvasHeight * window.devicePixelRatio;
-      canvas.style.width = canvasWidth + "px";
-      canvas.style.height = canvasHeight + "px";
-
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    }
-
-    ctx.beginPath();
-    ctx.arc(95, 50, 40, 0, 2 * Math.PI);
-    ctx.stroke();
-  }
-
-  function handleCanvasMouseMove(e){
-    console.log(e.offsetX, e.offsetY, e.buttons)
-  }
-
-
-  console.log($selectedKeys)
 
 
   let days = []
@@ -282,8 +253,9 @@
     svg {
         dominant-baseline: middle;
         user-select: none;
-    }
 
+    }
+    * { outline: none !important; }
     button[disabled=disabled], button:disabled {
         opacity: 0.5;
     }

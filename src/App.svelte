@@ -1,17 +1,22 @@
 <main>
 
-    {#await checkAuth}
-        <p>...waiting</p>
-    {:then _}
-        {#if $currentUser}
-            <Timeline/>
-        {:else}
-            <Auth/>
-        {/if}
+    {#if !isTestMode}
+        <Wrapper/>
+    {:else}
 
-    {:catch error}
-        <p style="color: red">{error.message}</p>
-    {/await}
+        {#await checkAuth}
+            <p>...waiting</p>
+        {:then _}
+            {#if $currentUser}
+                <Timeline/>
+            {:else}
+                <Auth/>
+            {/if}
+
+        {:catch error}
+            <p style="color: red">{error.message}</p>
+        {/await}
+    {/if}
 </main>
 
 <script>
@@ -19,6 +24,10 @@
   import Auth from "./components/Auth.svelte";
   import {currentUser} from "./lib/MainStore.js";
   import Timeline from "./components/Timeline.svelte";
+  import CanvasTimeline from "./components/CanvasTimeline.svelte";
+  import Wrapper from "./components/Wrapper.svelte";
+
+  const isTestMode = window.location.hash === "#/test";
 
   const checkAuth = apiService.init(localStorage.getItem('timeline_token'))
 
