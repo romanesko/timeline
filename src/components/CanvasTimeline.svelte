@@ -1,29 +1,24 @@
 <main bind:this={main} style="min-height: 100lvh; padding:10px">
-
     <canvas bind:this={canvas} height="745" id="canvas" width={canvasWidth}></canvas>
+    {#if debugMode}
+        <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
+        <!--            <pre>checkboxes: {JSON.stringify(tagsCheckBoxes)}</pre>-->
+        <!--        </div>-->
+        <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
+        <!--            <pre>selectedSlots: {JSON.stringify(selectedSlots)}</pre>-->
+        <!--        </div>-->
+        <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
+        <!--            <pre>selectedTags: {JSON.stringify(selectedTags)}</pre>-->
+        <!--        </div>-->
 
-
-    <!--{#if debugMode}-->
-
-
-    <!--    <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-    <!--        <pre>checkboxes: {JSON.stringify(tagsCheckBoxes)}</pre>-->
-    <!--    </div>-->
-    <!--    <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-    <!--        <pre>selectedSlots: {JSON.stringify(selectedSlots)}</pre>-->
-    <!--    </div>-->
-    <!--    <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-    <!--        <pre>selectedTags: {JSON.stringify(selectedTags)}</pre>-->
-    <!--    </div>-->
-
-<!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-<!--            {#each Object.keys($slotsInfo).sort() as key}-->
-<!--                <pre>{key}: {JSON.stringify($slotsInfo[key])}</pre>-->
-<!--            {/each}-->
-<!--        </div>-->
-    <!--{/if}-->
+        <div class="mt-2 text-gray-500" style="font-size: 8px">
+            {#each Object.keys($slotsInfo).sort() as key}
+                <pre>{key}: {JSON.stringify($slotsInfo[key])}</pre>
+            {/each}
+        </div>
+    {/if}
     <div bind:this={menuEl} style="position:absolute; left:{menuPosition.x}px; top:{menuPosition.y}px;">
-    <Menu zone={zone}  on:done={menuActionDone}  selectedKeys={selectedKeys}/>
+        <Menu zone={zone} on:done={menuActionDone} selectedKeys={selectedKeys}/>
     </div>
 
 
@@ -32,7 +27,8 @@
 <script>
   import {onMount} from 'svelte';
   import Menu from "./Menu.svelte";
-  import {slotsInfo} from "../lib/MainStore.js";
+  import {slotsInfo, settings} from "../lib/MainStore.js";
+  import {apiService} from "../lib/api.js";
 
   export const reset = () => {
     selected = {}
@@ -40,7 +36,6 @@
   }
 
   export let selectedTag;
-
 
 
   let menuPosition = {x: -1000, y: -1000};
@@ -61,30 +56,47 @@
   // TODO: сохранять данные в базу
 
 
-
   let canvas;
 
   const oddFill = '#ebe6e0'
   const evenFill = '#fcf7f1'
 
   const paddingLeft = 65
-  const slotSize = 20;
+  export let slotSizeX
+  export let slotSizeY
+  export let daysCount
+
+  try{
+     let x = localStorage.getItem('slotSizeX')
+    if (x && !isNaN(+x)){
+      slotSizeX = +x
+    }
+  }catch(e){
+    console.log(e)
+  }
+
+  try {
+    let y = localStorage.getItem('slotSizeY')
+    if (y && !isNaN(+y)) {
+      slotSizeY = +y
+    }
+  } catch (e) {
+    console.log(e)
+  }
+
   const workHours = 16
   const weekPadding = 4
   const defaultTextColor = '#aaa';
   const defaultSlotBorderColor = '#777';
 
 
-
   let main = document.getElementById('main');
 
-  const canvasWidth = workHours * 4 * slotSize + paddingLeft
-
+  const canvasWidth = workHours * 4 * slotSizeX + paddingLeft
 
 
   let days = []
   const today = new Date()
-
 
 
   function getDateString(d) {
@@ -101,7 +113,7 @@
 
 
     const loc_days = []
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < daysCount; i++) {
       const d = new Date(frDate.getTime() + (i * 24 * 60 * 60 * 1000));
       const key = getDateString(d)
       loc_days.push({
@@ -131,13 +143,13 @@
         }
       }
     }
-
     render()
+    getSlots()
 
   }
 
   function menuActionDone(e) {
-    if(e.detail.resetSelected){
+    if (e.detail.resetSelected) {
       selected = {}
     }
     render()
@@ -164,14 +176,11 @@
   // handleWeekMove(0)
 
 
-
   let menuEl;
 
 
-
-
   function getSelectedKeys() {
-    const slots=[]
+    const slots = []
     for (let slot of Object.values(selected)) {
       for (let day of days) {
         const found = day.slots.find(s => s.key === slot.key)
@@ -185,7 +194,6 @@
 
   let rectangles = [];
   let selected = {}
-
 
 
   function findIntersections(selection) {
@@ -285,7 +293,7 @@
   }
 
   function drawDates() {
-    ctx.font = "11px Arial";
+    ctx.font = "11px Rubik";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -295,7 +303,8 @@
       const dow = day.date.getDay()
       y += 20;
       // ctx.strokeStyle = 'black';
-      // ctx.strokeRect(0, y,  paddingLeft, 20);
+      ctx.fillStyle = '#FFF';
+      ctx.fillRect(0, y,  paddingLeft, 20);
       ctx.fillStyle = '#000';
 
       if (dow === 6 || dow === 0) {
@@ -342,9 +351,9 @@
   function drawHeader() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = "16px Arial";
-    const width = slotSize * 4
-    const height = slotSize;
+    ctx.font = "13px Rubik";
+    const width = slotSizeX * 4
+    const height = slotSizeY;
     ctx.strokeStyle = defaultSlotBorderColor;
     for (let i = 0; i < 16; i++) {
       ctx.fillStyle = i % 2 === 0 ? evenFill : oddFill;
@@ -400,9 +409,45 @@
     return zone.types.find(t => t.id === id)
   }
 
+  function genLabel(info, daySlot) {
+
+    if (info.length===1) {
+      return info.i.m
+    }
+
+    const fromHour = info.i.h.toString().padStart(2, '0')
+    const fromMinute = info.i.m.toString().padStart(2, '0')
+
+    let toHour = info.i.h
+    let toMinute = info.i.m
+
+    for (let i = 0; i < info.length; i++) {
+      toMinute += 15
+      if (toMinute > 59) {
+        toMinute = 0
+        toHour += 1
+      }
+    }
+
+    toHour = toHour.toString().padStart(2, '0')
+    toMinute = toMinute.toString().padStart(2, '0')
+
+    let label = info.i.m.toString()
+
+    if (info.length >1 && info.length < 3) {
+      label = `${fromMinute}-${toMinute}`
+    } else if (info.length < 4) {
+      label = `${fromHour}:${fromMinute}-${toHour}:${toMinute}`
+    } else {
+      label = `${fromHour}:${fromMinute} - ${toHour}:${toMinute}`
+    }
+
+    return label
+  }
+
 
   function drawOneLine(day, y) {
-    ctx.font = "11px Arial";
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -415,16 +460,20 @@
         continue
       }
 
-
+      if (info.length === 3) {
+        ctx.font = "10px Rubik";
+      } else {
+        ctx.font = "11px Rubik";
+      }
 
       ctx.setLineDash([0]);
 
       ctx.lineWidth = 1
       const rect = {
-        x: i * slotSize + paddingLeft,
+        x: i * slotSizeX + paddingLeft,
         y: y,
-        width: slotSize * info.length,
-        height: slotSize,
+        width: slotSizeX * info.length,
+        height: slotSizeY,
         key: daySlot.key
       }
       i = i + info.length;
@@ -437,15 +486,13 @@
       if (selectedTag) {
         ctx.globalAlpha = 0.2
         if (info.tags && info.tags.length > 0) {
-          if (info.tags.includes(selectedTag.value)) {
+          if (info.tags.includes(selectedTag.id)) {
             ctx.globalAlpha = 1
           }
         }
       }
 
       ctx.strokeStyle = defaultSlotBorderColor;
-
-
 
 
       if (info.type) {
@@ -467,7 +514,7 @@
       const textX = rect.x + rect.width / 2;
       const textY = rect.y + rect.height / 2 + 1;
       ctx.fillStyle = textColor;
-      ctx.fillText(info.label || daySlot.label, textX, textY);
+      ctx.fillText(genLabel(info, daySlot), textX, textY);
 
       if (daySlot.minute === 0) {
         ctx.setLineDash([0]);
@@ -608,17 +655,42 @@
 
   const isSafari = (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1)
 
-
   onMount(() => {
     debugMode = window.location.hash.indexOf('debug') > -1
-    beforeRender();
-    handleDateChange();
+
+
+
+      beforeRender();
+      handleDateChange();
+
     main.addEventListener('mouseup', onMousseUp);
     main.addEventListener('mousemove', onMousseMove);
 
     main.addEventListener('touchend', onMousseUp);
     main.addEventListener('touchmove', onMousseMove);
 
-
   });
+
+  function getSlots(){
+    const maxDate = (new Date(new Date(fromDate).getTime() + (daysCount * 24 * 60 * 60 * 1000))).toISOString().split('T')[0]
+
+    apiService.getSlots(zone.id, fromDate, maxDate).then(savedSlots => {
+      console.group('getSlots')
+      console.log('selectedZoneId', zone.id)
+      console.log('slots', savedSlots)
+      console.groupEnd()
+
+      const savedSlotsMap = Object.fromEntries(savedSlots.map(a => [a.key, a]))
+      $slotsInfo = {...savedSlotsMap, ...$slotsInfo}
+      console.log('slotsInfo', $slotsInfo)
+      render();
+
+    })
+
+  }
+
+
+
+
+
 </script>

@@ -1,8 +1,18 @@
 import "./app.pcss";
 import App from "./App.svelte";
 
-const app = new App({
-  target: document.getElementById("app"),
+
+WebFont.load({
+  google: {
+    families: ['Rubik']
+  },
+  active: function () {
+    setTimeout(() => {
+      new App({
+        target: document.getElementById("app"),
+      });
+    }, 100)
+  }
 });
 
-export default app;
+// export default app;

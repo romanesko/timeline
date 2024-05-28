@@ -21,32 +21,41 @@
         <hr/>
     {/if}
 
-    <div class="py-2 px-3">
-        {#each zone.types as type}
-            <div class="pb-1">
-                <Radio name="selectedType" bind:group={selectedType} value={type}>{type.label}</Radio>
-            </div>
-        {/each}
+    {#if zone.types.length > 0}
+        <div class="py-2 px-3">
+            {#each zone.types.filter(t => !t.label.startsWith('_')) as type}
+                <div class="pb-1">
+                    <Radio name="selectedType" bind:group={selectedType} value={type}>{type.label}</Radio>
+                </div>
+            {/each}
+            {#if selectedType && selectedType.id !== 0}
+                <div class="pl-3">
+                    <Button outline class="py-1 border-none" on:click={()=>{selectedType={id:0}}} size="xs">
+                        снять назначенный тип
+                    </Button>
+                </div>
+            {/if}
 
-    </div>
-    <hr/>
-
+        </div>
+        <hr/>
+    {/if}
     {#if selectedHasDifferentTags}
         <div class="py-2 px-3">
             У выбранных слотов разные теги, выберите общие:
         </div>
     {/if}
-    <div class="py-2 px-3">
-        <div class="pb-2 text-xs">Инструкторы:</div>
-        {#each zone.tags as tag}
-            <div class="pb-1">
-                <Checkbox bind:checked={tagsCheckBoxes[tag.value]} on:change={(e)=>handleTagChange(tag,e.target)}>{tag.name}</Checkbox>
-            </div>
-        {/each}
-    </div>
+    {#if zone.tags.length > 0}
+        <div class="py-2 px-3">
+            <div class="pb-2 text-xs">Инструкторы:</div>
+            {#each zone.tags.filter(t => !t.label.startsWith('_')) as tag}
+                <div class="pb-1">
+                    <Checkbox bind:checked={tagsCheckBoxes[tag.id]} on:change={(e)=>handleTagChange(tag,e.target)}>{tag.label}</Checkbox>
+                </div>
+            {/each}
+        </div>
+        <hr/>
+    {/if}
 
-
-    <hr/>
 
     <div class="py-2 px-3"><Input bind:value={comment} id="slot-comment" placeholder="Комментарий" size="sm"/></div>
     <hr/>
@@ -60,7 +69,7 @@
 
   import {Button, Checkbox, Input, Radio} from "flowbite-svelte";
 
-  import {selected, slotsInfo} from "../lib/MainStore.js";
+  import {hasChanges, selected, slotsInfo} from "../lib/MainStore.js";
   import {createEventDispatcher} from "svelte";
 
 
@@ -83,6 +92,7 @@
   function handleSplitGroupClick() {
     splitSelectedSlots()
     dispatch('done', {resetSelected: false});
+    $hasChanges = true
 
 
   }
@@ -95,9 +105,9 @@
 
   function handleTagChange(tag, target) {
     if (target.checked) {
-      selectedTags.push(tag.value)
+      selectedTags.push(tag.id)
     } else {
-      selectedTags = selectedTags.filter(t => t !== tag.value)
+      selectedTags = selectedTags.filter(t => t !== tag.id)
     }
   }
 
@@ -163,11 +173,10 @@
       if (slot.rest) {
         for (let rKey of slot.rest) {
           const slot = getInfoByKey(rKey)
-          slot[rKey] = value
+          slot[key] = value
           setInfoByKey(rKey, slot)
         }
       }
-      console.log('setValueToSelectedSlots', key, value, slot)
       setInfoByKey(slotKey, slot)
     }
   }
@@ -176,7 +185,7 @@
 
 
     if (selectedType) {
-      setValueToSelectedSlots('type', selectedType.id)
+      setValueToSelectedSlots('type', selectedType.id === 0 ? undefined : selectedType.id)
     }
 
 
@@ -193,7 +202,7 @@
     setValueToSelectedSlots('tags', selectedTags)
 
     dispatch('done', {resetSelected: true});
-
+    $hasChanges = true
 
   }
 
@@ -228,16 +237,12 @@
         slotTypes.add(slot.type)
       }
       if (slot.tags) {
-        console.log('slot.tags', slot.tags)
         slotTags.add(slot.tags.sort().join(' ').toString())
         for (let tag of slot.tags) {
           allTags.add(tag)
         }
       }
     })
-
-    console.log('----')
-    console.log('allTags', allTags)
 
     comment = undefined
     if (comments.size === 1) {
@@ -250,7 +255,6 @@
       selectedType = undefined
     }
 
-    console.log('slotTags.size', slotTags.size)
 
     if (slotTypes.size === 1) {
       selectedType = getTypeById(slotTypes.values().next().value)
@@ -267,7 +271,6 @@
         selectedTags = Array.from(allTags)
       }
     }
-    console.log('selectedTags', selectedTags)
     selectedHasDifferentTags = slotTags.size > 1
 
     for (let key of Object.keys(tagsCheckBoxes)) {
@@ -311,8 +314,6 @@
       let firstSlotKey = selectedSlotsKeys[0]
       let firstSlot = getInfoByKey(firstSlotKey)
 
-      let lastSlotKey = selectedSlotsKeys[selectedSlotsKeys.length - 1]
-      let lastSlot = getInfoByKey(lastSlotKey)
 
       let totalLength = firstSlot.length
 
@@ -338,13 +339,6 @@
       }
       firstSlot.length = totalLength
 
-      if (firstSlot.length < 3) {
-        firstSlot.label = `${firstSlot.i.m.toString().padStart(2, '0')} - ${lastSlot.i.m.toString().padStart(2, '0')}`
-      } else if (firstSlot.length < 4) {
-        firstSlot.label = `${firstSlot.i.h.toString().padStart(2, '0')}:${firstSlot.i.m.toString().padStart(2, '0')}-${lastSlot.i.h.toString().padStart(2, '0')}:${lastSlot.i.m.toString().padStart(2, '0')}`
-      } else {
-        firstSlot.label = `${firstSlot.i.h.toString().padStart(2, '0')}:${firstSlot.i.m.toString().padStart(2, '0')} - ${lastSlot.i.h.toString().padStart(2, '0')}:${lastSlot.i.m.toString().padStart(2, '0')}`
-      }
       setInfoByKey(firstSlotKey, firstSlot)
 
     }

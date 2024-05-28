@@ -1,4 +1,4 @@
-import {currentUser} from "./MainStore.js";
+import {currentUser, zones} from "./MainStore.js";
 
 function isUUID(uuid) {
   let s = "" + uuid;
@@ -107,12 +107,40 @@ class ApiService {
     return this.api.request('/values', param)
   }
 
-  getTypes() {
-    return this.api.request('/types')
+  // getTypes() {
+  //   return this.api.request('/types')
+  // }
+  //
+  // setValues(data) {
+  //   return this.api.request('/values/set', {values: data})
+  // }
+  //
+  getZones() {
+    return this.api.request('/zones').then(a => {
+      zones.set(a)
+    })
   }
 
-  setValues(data) {
-    return this.api.request('/values/set', {values: data})
+  async saveSlots(zoneId, dataToSave) {
+    return this.api.request('/slots/save', {zone: zoneId, slots: dataToSave})
+  }
+
+  getSlots(zoneId, minDate, maxDate) {
+    return this.api.request('/slots', {zone: zoneId, from: minDate, to: maxDate})
+  }
+
+  async updateZone(zone) {
+    return this.api.request('/zones/set', zone)
+  }
+
+
+  async export(zoneId, minDate, maxDate) {
+    return this.api.request('/export', {zone: zoneId, from: minDate, to: maxDate})
+
+  }
+
+  async getAdminKeys() {
+    return this.api.request('/admin/keys')
   }
 }
 
