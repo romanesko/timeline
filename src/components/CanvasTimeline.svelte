@@ -1,34 +1,39 @@
 <main bind:this={main} style="min-height: 100lvh; padding:10px">
-    <canvas bind:this={canvas} height="745" id="canvas" width={canvasWidth}></canvas>
-    {#if debugMode}
-        <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-        <!--            <pre>checkboxes: {JSON.stringify(tagsCheckBoxes)}</pre>-->
-        <!--        </div>-->
-        <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-        <!--            <pre>selectedSlots: {JSON.stringify(selectedSlots)}</pre>-->
-        <!--        </div>-->
-        <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
-        <!--            <pre>selectedTags: {JSON.stringify(selectedTags)}</pre>-->
-        <!--        </div>-->
+  <canvas bind:this={canvas} height="745" id="canvas" width={canvasWidth}></canvas>
+  {#if debugMode}
+    <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
+    <!--            <pre>checkboxes: {JSON.stringify(tagsCheckBoxes)}</pre>-->
+    <!--        </div>-->
+    <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
+    <!--            <pre>selectedSlots: {JSON.stringify(selectedSlots)}</pre>-->
+    <!--        </div>-->
+    <!--        <div class="mt-2 text-gray-500" style="font-size: 8px">-->
+    <!--            <pre>selectedTags: {JSON.stringify(selectedTags)}</pre>-->
+    <!--        </div>-->
 
-        <div class="mt-2 text-gray-500" style="font-size: 8px">
-            {#each Object.keys($slotsInfo).sort() as key}
-                <pre>{key}: {JSON.stringify($slotsInfo[key])}</pre>
-            {/each}
-        </div>
-    {/if}
-    <div bind:this={menuEl} style="position:absolute; left:{menuPosition.x}px; top:{menuPosition.y}px;">
-        <Menu zone={zone} on:done={menuActionDone} selectedKeys={selectedKeys}/>
+    <div class="mt-2 text-gray-500" style="font-size: 8px">
+      {#each Object.keys($slotsInfo).sort() as key}
+        <pre>{key}: {JSON.stringify($slotsInfo[key])}</pre>
+      {/each}
     </div>
+  {/if}
+  <div bind:this={menuEl} style="position:absolute; left:{menuPosition.x}px; top:{menuPosition.y}px;">
+    <Menu zone={zone} on:done={menuActionDone} selectedKeys={selectedKeys}/>
+  </div>
 
+  <div style="position:absolute; left:{weekMenuPosition.x}px; top:{weekMenuPosition.y}px;">
+    <WeekMenu on:done={weekMenuActionDone} selected={lastWeekSelection}/>
+  </div>
 
 </main>
 
 <script>
   import {onMount} from 'svelte';
   import Menu from "./Menu.svelte";
-  import {slotsInfo, settings} from "../lib/MainStore.js";
+  import WeekMenu from "./WeekMenu.svelte"
+  import {hasChanges, slotsInfo} from "../lib/MainStore.js";
   import {apiService} from "../lib/api.js";
+
 
   export const reset = () => {
     selected = {}
@@ -39,6 +44,7 @@
 
 
   let menuPosition = {x: -1000, y: -1000};
+  let weekMenuPosition = {x: -1000, y: -1000};
   // let menuPosition = {x: 0, y: -0};
 
   export let zone;
@@ -51,10 +57,6 @@
   toDate.setMonth(toDate.getMonth() + 1)
   let maxDate = toDate.toJSON().slice(0, 10)
 
-  // TODO: добавить несколько залов
-  // TODO: добавить возможность выделять на мобильном устройстве
-  // TODO: сохранять данные в базу
-
 
   let canvas;
 
@@ -66,12 +68,12 @@
   export let slotSizeY
   export let daysCount
 
-  try{
-     let x = localStorage.getItem('slotSizeX')
-    if (x && !isNaN(+x)){
+  try {
+    let x = localStorage.getItem('slotSizeX')
+    if (x && !isNaN(+x)) {
       slotSizeX = +x
     }
-  }catch(e){
+  } catch (e) {
     console.log(e)
   }
 
@@ -85,7 +87,7 @@
   }
 
   const workHours = 16
-  const weekPadding = 4
+  const weekPadding = 5
   const defaultTextColor = '#aaa';
   const defaultSlotBorderColor = '#777';
 
@@ -204,10 +206,10 @@
 
     function intersect(rect1, rect2) {
       return (
-        rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.y + rect1.height > rect2.y
+          rect1.x < rect2.x + rect2.width &&
+          rect1.x + rect1.width > rect2.x &&
+          rect1.y < rect2.y + rect2.height &&
+          rect1.y + rect1.height > rect2.y
       );
     }
 
@@ -226,6 +228,8 @@
   function hideMenu() {
     menuPosition.x = -1000;
     menuPosition.y = -1000;
+    weekMenuPosition.x = -1000;
+    weekMenuPosition.y = -1000;
   }
 
   function drawMenu() {
@@ -292,59 +296,60 @@
     drawTimeline()
   }
 
+  const weeks = []
+
   function drawDates() {
     ctx.font = "11px Rubik";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
+    const datesPaddingLeft = paddingLeft;
+
     let y = weekPadding;
+
+    let startY = y
+    let weekDays = []
+
     for (let i = 0; i < days.length; i++) {
+      weekDays.push(days[i].key)
       const day = days[i]
       const dow = day.date.getDay()
       y += 20;
       // ctx.strokeStyle = 'black';
       ctx.fillStyle = '#FFF';
-      ctx.fillRect(0, y,  paddingLeft, 20);
+      ctx.fillRect(0, y, datesPaddingLeft, 20);
       ctx.fillStyle = '#000';
 
       if (dow === 6 || dow === 0) {
         ctx.fillStyle = '#FF0000';
       }
 
-      ctx.fillText(day.label, paddingLeft / 2, y + 12);
+      ctx.fillText(day.label, datesPaddingLeft / 2, y + 12);
 
       if (selectedTag) {
         ctx.globalAlpha = 0.2
       }
 
       ctx.strokeStyle = '#ddd';
-      // ctx.beginPath();
-      // ctx.moveTo(1,y);
-      // ctx.lineTo(1, y+20);
-      // ctx.stroke();
-
-      // if (dow === 1) {
-      //   ctx.beginPath();
-      //   ctx.moveTo(30, y);
-      //   ctx.lineTo(paddingLeft - 30, y);
-      //   ctx.stroke();
-      // }
-
 
       if (dow === 0) {
         ctx.beginPath();
         ctx.moveTo(25, y + 22);
-        ctx.lineTo(paddingLeft - 25, y + 22);
+        ctx.lineTo(datesPaddingLeft - 25, y + 22);
         ctx.stroke();
+
       }
 
       ctx.globalAlpha = 1
 
       if (dow === 0) {
         y += weekPadding
+        weeks.push({y, startY, days: weekDays})
+        weekDays = []
+        startY = y
+
       }
     }
-
 
   }
 
@@ -411,7 +416,7 @@
 
   function genLabel(info, daySlot) {
 
-    if (info.length===1) {
+    if (info.length === 1) {
       return info.i.m
     }
 
@@ -434,7 +439,7 @@
 
     let label = info.i.m.toString()
 
-    if (info.length >1 && info.length < 3) {
+    if (info.length > 1 && info.length < 3) {
       label = `${fromMinute}-${toMinute}`
     } else if (info.length < 4) {
       label = `${fromHour}:${fromMinute}-${toHour}:${toMinute}`
@@ -537,6 +542,7 @@
 
   let prevSelection;
 
+
   function onMousseUp(e) {
     if (!isDrawing) return;
     isDrawing = false;
@@ -576,14 +582,75 @@
 
     prevSelection = selectedStr;
 
-
     render();
-    drawMenu();
+    if (Object.keys(selected).length) {
+      drawMenu();
+    } else {
+      hideMenu()
+    }
 
   };
 
+
+  function weekMenuActionDone(e) {
+    lastWeekSelection = null
+    hideMenu()
+    console.log('weekMenuActionDone', e.detail)
+
+      $hasChanges = true
+      render()
+
+
+  }
+
+  let lastWeekSelection = null
+
+  function drawWeekSelection(week) {
+    if (lastWeekSelection === week) return;
+
+
+    if (menuPosition.x > 0) {
+      return
+    }
+    // hideMenu()
+    // render()
+
+    lastWeekSelection = week
+    ctx.fillStyle = `rgba(0, 150, 255, 0.2)`;
+
+    ctx.strokeStyle = "red";
+
+    ctx.beginPath();
+    ctx.roundRect(1, week.startY + 22, paddingLeft - 4, 136, 4);
+    ctx.closePath();
+
+    // Fill the shape
+    ctx.fill();
+
+
+  }
+
+  function onMouseEmptyMove(mouseX, mouseY) {
+
+    if (mouseX < paddingLeft) {
+      for (let week of weeks) {
+        if (mouseY > week.startY && mouseY < week.y) {
+          drawWeekSelection(week)
+          return
+        }
+      }
+    } else {
+      if (lastWeekSelection !== null && weekMenuPosition.x < paddingLeft) {
+        lastWeekSelection = null
+        render()
+      }
+    }
+
+  }
+
+
   function onMousseMove(e) {
-    if (!isDrawing) return;
+
 
     e.preventDefault();
 
@@ -596,20 +663,25 @@
       mouseY = e.layerY
     }
 
+    if (!isDrawing) return onMouseEmptyMove(mouseX, mouseY);
 
     const width = mouseX - startX;
     const height = mouseY - startY;
 
+    lastWeekSelection = null
     render();
     ctx.strokeStyle = 'blue';
     ctx.strokeRect(startX, startY, width, height);
   }
 
 
+  function drawWeekMenu(mouseX, mouseY, week) {
+    weekMenuPosition.x = mouseX + 50
+    weekMenuPosition.y = mouseY + 100
+  }
+
+
   function onMouseDown(e) {
-    hideMenu()
-    isDrawing = true;
-    e.preventDefault();
 
     if (isSafari) {
       startX = e.layerX
@@ -618,6 +690,17 @@
       startX = e.layerX - canvas.offsetLeft;
       startY = e.layerY - canvas.offsetTop;
     }
+
+
+    if (lastWeekSelection !== null && startX < paddingLeft) {
+      drawWeekMenu(startX, startY, lastWeekSelection)
+      return
+    }
+
+
+    hideMenu()
+    isDrawing = true;
+    e.preventDefault();
 
 
   }
@@ -659,9 +742,8 @@
     debugMode = window.location.hash.indexOf('debug') > -1
 
 
-
-      beforeRender();
-      handleDateChange();
+    beforeRender();
+    handleDateChange();
 
     main.addEventListener('mouseup', onMousseUp);
     main.addEventListener('mousemove', onMousseMove);
@@ -671,7 +753,7 @@
 
   });
 
-  function getSlots(){
+  function getSlots() {
     const maxDate = (new Date(new Date(fromDate).getTime() + (daysCount * 24 * 60 * 60 * 1000))).toISOString().split('T')[0]
 
     apiService.getSlots(zone.id, fromDate, maxDate).then(savedSlots => {
@@ -688,9 +770,6 @@
     })
 
   }
-
-
-
 
 
 </script>
