@@ -608,7 +608,6 @@
   function drawWeekSelection(week) {
     if (lastWeekSelection === week) return;
 
-
     if (menuPosition.x > 0) {
       return
     }
@@ -621,7 +620,7 @@
     ctx.strokeStyle = "red";
 
     ctx.beginPath();
-    ctx.roundRect(1, week.startY + 22, paddingLeft - 4, 136, 4);
+    ctx.roundRect(1, week.startY + 22, paddingLeft - 4, week.y - week.startY - 8, 4);
     ctx.closePath();
 
     // Fill the shape
@@ -658,7 +657,6 @@
     let mouseY = e.layerY - canvas.offsetTop;
 
     if (isSafari) {
-      console.log(isSafari)
       mouseX = e.layerX
       mouseY = e.layerY
     }

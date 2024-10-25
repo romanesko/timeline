@@ -24,7 +24,6 @@
   function handleApplyClick() {
 
     const selectedWeek = selected.days
-    console.log('selectedWeek', selectedWeek)
 
     const lastDay = new Date(selectedWeek[selectedWeek.length - 1])
 
@@ -34,11 +33,6 @@
 
       nextWeek.push(day.toISOString().split('T')[0])
     }
-
-    console.log('selectedWeek', selectedWeek)
-    console.log('nextWeek', nextWeek)
-
-    console.log(Object.keys($slotsInfo).length)
 
     for (let i = 0; i < 7; i++) {
       const fromDay = selectedWeek[i]
