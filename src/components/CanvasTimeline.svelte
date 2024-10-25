@@ -613,7 +613,7 @@
       return
     }
     // hideMenu()
-    // render()
+    render()
 
     lastWeekSelection = week
     ctx.fillStyle = `rgba(0, 150, 255, 0.2)`;
